@@ -2,7 +2,7 @@ import pandas as pd
 
 
 
-df = pd.read_csv('551_grade.csv')
+df = pd.read_csv('553_grade.csv')
 print(df.head(5))
 
 assignment_end = df.columns.get_loc('Assignments Current Points')
@@ -37,4 +37,17 @@ df['grade_letter'] = percentage.apply(
     )
 )
 
-df.to_csv('551.csv',index=False)
+students = df.loc[
+    ~df['Student'].astype(str).str.contains('Points Possible', case=False, na=False)
+].copy()
+top_n = max(1, (len(students) + 9) // 10)
+cutoff = students['grade_man'].nlargest(top_n).min()
+top_students = (
+    students.loc[students['grade_man'] >= cutoff]
+    .sort_values('grade_man', ascending=False)[['Student', 'SIS Login ID']]
+)
+print('Top 10% by total points:')
+print(top_students.to_string(index=False))
+top_students.to_csv('553_top_10_percent_students.csv', index=False)
+
+df.to_csv('553_letter.csv',index=False)
